@@ -1,7 +1,7 @@
 # Makefile for http_downloader project file(s)
 
 CC = gcc
-CFLAGS = -Wall -02
+CFLAGS = -Wall
 LDFLAGS = -lssl -lcrypto -lpthread
 
 TARGET = http_downloader
