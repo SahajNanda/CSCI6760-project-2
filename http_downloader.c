@@ -260,6 +260,41 @@ void * download_part(void *arg) {
     return NULL;
 } // download_part
 
+int parseURL(const char *url, char *host, char *path) {
+    if (strncmp(url, "https://", 8) != 0) {
+        fprintf(stderr, "Error: Only HTTPS URLs are supported\n");
+        return -1;
+    }
+    
+    const char *url_start = url + 8; // skip "https://"
+    const char *path_start = strchr(url_start, '/');
+    
+    if (path_start) {
+        size_t host_len = path_start - url_start;
+        if (host_len >= MAX_HOST) {
+            fprintf(stderr, "Error: Hostname too long\n");
+            return -1;
+        }
+        strncpy(host, url_start, host_len);
+        host[host_len] = '\0';
+        
+        if (strlen(path_start) >= MAX_PATH) {
+            fprintf(stderr, "Error: Path too long\n");
+            return -1;
+        }
+        strcpy(path, path_start);
+    } else {
+        if (strlen(url_start) >= MAX_HOST) {
+            fprintf(stderr, "Error: Hostname too long\n");
+            return -1;
+        }
+        strcpy(host, url_start);
+        strcpy(path, "/");
+    }
+    
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     int parse_result = parse_arguments(argc, argv);
     if (parse_result != 0) {
@@ -268,6 +303,7 @@ int main(int argc, char *argv[]) {
         }
         return 1;
     } // if
+
 
     char host[MAX_HOST];
     char path[MAX_PATH];
@@ -333,6 +369,7 @@ int main(int argc, char *argv[]) {
     if (SSL_connect(ssl) <= 0) {
         ERR_print_errors_fp(stderr);
         return 1;
+
     } // if
 
     printf("Connected with %s encryption\n", SSL_get_cipher(ssl));
