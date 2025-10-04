@@ -181,6 +181,17 @@ void * download_part(void *arg) {
         SSL *ssl = SSL_new(p->ssl_ctx);
         SSL_set_fd(ssl, sockfd);
 
+        //SNI support
+        if (!SSL_set_tlsext_host_name(ssl, p->host)) {
+            pthread_mutex_lock(p->print_lock);
+            fprintf(stderr, "Thread %d: ERROR setting TLS SNI hostname\n", p->index);
+            pthread_mutex_unlock(p->print_lock);
+            SSL_free(ssl);
+            close(sockfd);
+            retries++;
+            continue;
+        } // if
+
         if (SSL_connect(ssl) <= 0) {
             pthread_mutex_lock(p->print_lock);
             ERR_print_errors_fp(stderr);
